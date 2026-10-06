@@ -1,0 +1,45 @@
+# Builds the workflow on every push and PR. Pushing a tag like v1.1.0 also
+# publishes dist/GitHub-Repos.alfredworkflow as that tag's GitHub release.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            export VERSION="${GITHUB_REF_NAME#v}"
+          else
+            export VERSION="0.0.0-${GITHUB_SHA::7}"
+          fi
+          ./build.sh
+          unzip -p dist/GitHub-Repos.alfredworkflow info.plist | plutil -extract version raw -
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: GitHub-Repos.alfredworkflow
+          path: dist/GitHub-Repos.alfredworkflow
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/GitHub-Repos.alfredworkflow --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/GitHub-Repos.alfredworkflow \
+              --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
