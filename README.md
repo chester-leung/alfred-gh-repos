@@ -2,6 +2,8 @@
 
 Fuzzy-open any GitHub repo you have access to from Alfred.
 
+**[DOWNLOAD](https://github.com/chester-leung/alfred-gh-repos/releases/latest)**
+
 Type **`gh`** followed by a few letters. Every repo you own, collaborate on, or
 can see through an org is searchable, and matching is fuzzy: `gh imsg agent`
 finds `imessage-agent`, `gh mc2 opq` finds `mc2-project/opaque-sql`. An empty
